@@ -1,0 +1,79 @@
+use './assignActions.ts' { assignOperator, assignOperandOneDividedByOneHundred, assignOperandOne, assignOperandOneZero, assignOperandOneDecimalPoint, assignOperandOneNegative, assignResetOperandOne, assignAddDigitToOperandOne, assignOperandOneParsedFloat, assignOperandTwo, assignOperandTwoZero, assignOperandTwoDecimalPoint, assignOperandTwoNegative, assignResetOperandTwo, assignAddDigitToOperandTwo, assignOperandTwoParsedFloat, assignOperandOneCalculated, assignResetOperator }
+
+machine Calc {
+    initial state Cluster {
+        machine A {
+            state Start {
+                OPERATOR_CLICKED => guard(:isTheMinusOperator) => Calc.NegativeNumberOne
+            }
+            state Result {
+                OPERATOR_CLICKED => action(:assignOperator) => Calc.OperatorEntered
+                PERCENT_SIGN_CLICKED => action(:assignOperandOneDividedByOneHundred)
+            }
+        }
+        DIGIT_CLICKED => guard(:isCurrentOperandZero) => action(:assignOperandOne) => OperandOneEntered.Zero
+        DIGIT_CLICKED => action(:assignOperandOne) => OperandOneEntered.BeforeDecimalPoint
+        DECIMAL_POINT_CLICKED => action(:assignOperandOneZero) => action(:assignOperandOneDecimalPoint) => OperandOneEntered.AfterDecimalPoint
+    }
+    state NegativeNumberOne {
+        DIGIT_CLICKED => action(:assignOperandOneNegative) => OperandOneEntered.BeforeDecimalPoint
+        DECIMAL_POINT_CLICKED => action(:assignOperandOneZero) => action(:assignOperandOneDecimalPoint) => OperandOneEntered.AfterDecimalPoint
+        CLEAR_BUTTON_CLICKED => action(:assignResetOperandOne) => Cluster
+    }
+    state OperandOneEntered {
+        machine A {
+            state Zero {
+                DIGIT_CLICKED => guard(:isCurrentOperandZero)
+                DIGIT_CLICKED => action(:assignOperandOne) => BeforeDecimalPoint
+                DECIMAL_POINT_CLICKED => action(:assignOperandOneDecimalPoint) => AfterDecimalPoint
+            }
+            initial state BeforeDecimalPoint {
+                DIGIT_CLICKED => action(:assignAddDigitToOperandOne)
+                DECIMAL_POINT_CLICKED => action(:assignOperandOneDecimalPoint) => AfterDecimalPoint
+            }
+            state AfterDecimalPoint {
+                @exit => action(:assignOperandOneParsedFloat)
+                DIGIT_CLICKED => action(:assignAddDigitToOperandOne)
+            }
+        }
+        OPERATOR_CLICKED => action(:assignOperator) => OperatorEntered
+        PERCENT_SIGN_CLICKED => action(:assignOperandOneDividedByOneHundred)
+        CLEAR_BUTTON_CLICKED => action(:assignResetOperandOne) => Cluster
+    }
+    state OperatorEntered {
+        DIGIT_CLICKED => guard(:isCurrentOperandZero) => action(:assignOperandTwo) => OperandTwoEntered.Zero
+        DIGIT_CLICKED => action(:assignOperandTwo) => OperandTwoEntered.BeforeDecimalPoint
+        DECIMAL_POINT_CLICKED => action(:assignOperandTwoZero) => action(:assignOperandTwoDecimalPoint) => OperandTwoEntered.AfterDecimalPoint
+        OPERATOR_CLICKED => guard(:isTheMinusOperator) => NegativeNumberTwo
+        OPERATOR_CLICKED => action(:assignOperator) => OperatorEntered
+    }
+    state NegativeNumberTwo {
+        DIGIT_CLICKED => guard(:isCurrentOperandZero) => action(:assignOperandTwo) => OperandTwoEntered.Zero
+        DIGIT_CLICKED => action(:assignOperandTwoNegative) => OperandTwoEntered.BeforeDecimalPoint
+        DECIMAL_POINT_CLICKED => action(:assignOperandTwoZero) => action(:assignOperandTwoDecimalPoint) => OperandTwoEntered.AfterDecimalPoint
+        CLEAR_BUTTON_CLICKED => action(:assignResetOperandTwo) => OperatorEntered
+    }
+    state OperandTwoEntered {
+        machine A {
+        state Zero {
+            DIGIT_CLICKED => guard(:isCurrentOperandZero)
+            DIGIT_CLICKED => action(:assignOperandTwo) => BeforeDecimalPoint
+            DECIMAL_POINT_CLICKED => action(:assignOperandTwoDecimalPoint) => AfterDecimalPoint
+        }
+        initial state BeforeDecimalPoint {
+            DIGIT_CLICKED => action(:assignAddDigitToOperandTwo)
+            DECIMAL_POINT_CLICKED => action(:assignOperandTwoDecimalPoint) => AfterDecimalPoint
+        }
+        state AfterDecimalPoint {
+            @exit => action(:assignOperandTwoParsedFloat)
+            DIGIT_CLICKED => action(:assignAddDigitToOperandTwo)
+        }
+        }
+        EQUAL_SIGN_CLICKED => guard(:isDivideByZero) => AlertError
+        EQUAL_SIGN_CLICKED => action(:assignOperandOneCalculated) => action(:assignResetOperandTwo) => action(:assignResetOperator) => Cluster.Result
+        OPERATOR_CLICKED => action(:assignOperator) => OperatorEntered
+        CLEAR_BUTTON_CLICKED => action(:assignResetOperandTwo) => OperatorEntered
+    }
+    state AlertError {
+        OK_BUTTON_CLICKED => action(:assignResetOperandTwo) => OperandTwoEntered
+    }
