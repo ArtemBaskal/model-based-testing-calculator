@@ -7,4 +7,6 @@ export default defineConfig({
     react(),
     lucy(),
   ],
+  base: 'model-based-testing-calculator'
 })
+

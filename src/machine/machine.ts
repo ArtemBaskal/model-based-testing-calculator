@@ -305,7 +305,9 @@ export const machine = createMachine(
     },
   },
   {
+    // @ts-ignore
     guards,
+    // @ts-ignore
     actions,
   }
 );
