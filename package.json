@@ -10,7 +10,8 @@
     "test": "playwright test --config=playwright.config.ts",
     "test:debug": "playwright test --config=playwright.config.ts --debug",
     "test:headless": "HEADLESS=true playwright test --config=playwright.config.ts",
-    "codegen:lucy": "nodemon --exec \"lucyc src/machine/machine.lucy --out-file src/machine/lucy.machine.js\" src/machine/machine.lucy"
+    "codegen:lucy": "nodemon --exec \"lucyc src/machine/machine.lucy --out-file src/machine/lucy.machine.js\" src/machine/machine.lucy",
+    "deploy": "sh deploy.sh"
   },
   "dependencies": {
     "@playwright/test": "^1.29.1",
