@@ -93,7 +93,6 @@ export const machine = createMachine(
             on: {
               DIGIT_CLICKED: [
                 {
-                  // FIXME
                   description: "0",
                   cond: 'isCurrentOperandZero',
                 },
@@ -190,7 +189,7 @@ export const machine = createMachine(
             {
               description: "0",
               cond: 'isCurrentOperandZero',
-              actions: ['assignOperand2'],
+              actions: ['assignOperand2Negative'],
               target: "Operand2Entered.Zero",
             },
             {
@@ -214,14 +213,12 @@ export const machine = createMachine(
       Operand2Entered: {
         // FIXME: debug
         // type: 'history',
-        // history: 'shallow',
-        // initial: 'BeforeDecimalPoint',
+        initial: 'BeforeDecimalPoint',
         states: {
           Zero: {
             on: {
               DIGIT_CLICKED: [
                 {
-                  // FIXME
                   description: "0",
                   cond: 'isCurrentOperandZero',
                 },
@@ -290,7 +287,7 @@ export const machine = createMachine(
         on: {
           OK_BUTTON_CLICKED: {
             description: "OK",
-            actions: ['assignResetOperand2'],
+            // actions: ['assignResetOperand2'],
             target: "Operand2Entered",
           },
         },

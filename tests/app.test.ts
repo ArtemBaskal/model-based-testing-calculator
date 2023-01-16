@@ -1,14 +1,16 @@
-import { test, expect, chromium } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { createModel } from '@xstate/test';
-import { createMachine } from "xstate";
-import type { AnyStateMachine } from "xstate";
-import type { EventObject } from "xstate";
-import type { Browser, Page } from "playwright-core";
-import {
+import { assign, createMachine } from "xstate";
+import type { AnyStateMachine, EventObject } from "xstate";
+import type { Page } from "playwright-core";
+import type { TestPlan } from "@xstate/test/es/types";
+import type {
+  GuardFunc,
+  MachineContext,
+  MachineEvents,
   DigitClickedEvent,
   OperatorClickedEvent
 } from "../src/machine/type";
-import type { TestPlan } from "@xstate/test/es/types";
 
 /**
  * Adds state.meta.test to machines by their state id -
@@ -27,6 +29,7 @@ export const addTestsToMachine = (
    * 2. Values are functions that take your test context
    *   and return a promise
    */
+  // @ts-ignore
   tests: Record<string, (page: Page, state) => Promise<void>>,
 ) => {
   Object.entries(tests).forEach(([stateId, test]) => {
@@ -95,27 +98,50 @@ export const dedupPathPlans = <TTestContext>(
   return filteredPathPlans;
 };
 
-export const everyGuard =
-  <T extends EventObject>(guards) =>
-    (...args) =>
+const ArithmeticOperator = {
+  PLUS: 'PLUS',
+  MINUS: 'MINUS',
+  MULTIPLY: 'MULTIPLY',
+  DIVIDE: 'DIVIDE',
+} as const;
+
+const everyGuard =
+  <T extends EventObject>(guards: GuardFunc<T>[]) =>
+    (...args: Parameters<GuardFunc<T>>) =>
       guards.every(guard => guard(...args));
 
-export const isCurrentOperandZero = (context, { data }) => data === 0;
+const isCurrentOperandZero = (context: MachineContext, { data }: DigitClickedEvent) => data === 0;
 
-export const isTheMinusOperator = (context, { data }) => data === 'MINUS';
+const isTheMinusOperator = (context: MachineContext, { data }: OperatorClickedEvent) => data === ArithmeticOperator.MINUS;
 
-export const isOperand2Zero = ({ operand2 }) => parseFloat(operand2) === 0;
+const isOperand2Zero = ({ operand2 }: MachineContext) => parseFloat(operand2!) === 0;
 
-export const isTheDivideOperator = ({ operator }) => operator === 'DIVIDE';
+const isTheDivideOperator = ({ operator }: MachineContext) => operator === ArithmeticOperator.DIVIDE;
 
-export const isDivideByZero = everyGuard([isTheDivideOperator, isOperand2Zero])
+const isDivideByZero = everyGuard([isTheDivideOperator, isOperand2Zero])
 
-export const guards = {
+const guards = {
   isCurrentOperandZero,
   isOperand2Zero,
   isTheMinusOperator,
   isDivideByZero,
 }
+
+const INITIAL_CONTEXT: MachineContext = {};
+
+const assignOperator = assign<MachineContext, OperatorClickedEvent>({
+  operator: (context, { data }) => data,
+});
+
+export const assignOperand2 = assign<MachineContext, DigitClickedEvent>({
+  operand2: (context, { data }) => `${data}`,
+});
+
+export const assignOperand2Zero = assign<MachineContext>({
+  operand2: '0',
+});
+
+const assignResetContext = assign<MachineContext>(() => INITIAL_CONTEXT);
 
 const machineWithoutTests = createMachine(
   {
@@ -123,6 +149,10 @@ const machineWithoutTests = createMachine(
     context: {},
     initial: "Cluster",
     id: "Calc",
+    schema: {
+      context: <MachineContext>{},
+      events: <MachineEvents>{},
+    },
     states: {
       Cluster: {
         initial: "Start",
@@ -197,7 +227,6 @@ const machineWithoutTests = createMachine(
             on: {
               DIGIT_CLICKED: [
                 {
-                  // FIXME
                   description: "0",
                   cond: 'isCurrentOperandZero',
                 },
@@ -228,6 +257,7 @@ const machineWithoutTests = createMachine(
             },
           },
           AfterDecimalPoint: {
+            exit: ['assignOperand1ParsedFloat'],
             on: {
               DIGIT_CLICKED: {
                 description: "0-9",
@@ -293,7 +323,7 @@ const machineWithoutTests = createMachine(
             {
               description: "0",
               cond: 'isCurrentOperandZero',
-              actions: ['assignOperand2'],
+              actions: ['assignOperand2Negative'],
               target: "Operand2Entered.Zero",
             },
             {
@@ -315,6 +345,7 @@ const machineWithoutTests = createMachine(
         },
       },
       Operand2Entered: {
+        // type: 'history',
         initial: 'BeforeDecimalPoint',
         states: {
           Zero: {
@@ -351,6 +382,7 @@ const machineWithoutTests = createMachine(
             },
           },
           AfterDecimalPoint: {
+            exit: ['assignOperand2ParsedFloat'],
             on: {
               DIGIT_CLICKED: {
                 description: "0-9",
@@ -403,51 +435,55 @@ const machineWithoutTests = createMachine(
   },
   {
     guards,
+    actions: {
+      assignOperator,
+      assignOperand2,
+      assignResetContext,
+    },
   }
 );
 
 const machineWithTests = addTestsToMachine(machineWithoutTests, {
   Cluster: async (page) => {
-    expect(page.locator('data-test=calc-input')).not.toHaveValue('NaN');
+    await expect(page.locator('data-test=calc-input')).not.toHaveValue('NaN');
   },
   ['Cluster.Start']: async (page) => {
-    expect(page.locator('data-test=calc-input')).toHaveValue(/^$/);
+    await expect(page.locator('data-test=calc-input')).toHaveValue(/^$/);
   },
   ['Cluster.Result']: async (page) => {
-    expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)?$/);
+    await expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)?$/);
   },
   NegativeNumber1: async (page) => {
-    expect(page.locator('data-test=calc-input')).toHaveValue(/^-$/);
+    await expect(page.locator('data-test=calc-input')).toHaveValue(/^-$/);
   },
   ['Operand1Entered.Zero']: async (page) => {
-    expect(page.locator('data-test=calc-input')).toHaveValue(/^0$/);
+    await expect(page.locator('data-test=calc-input')).toHaveValue(/^0$/);
   },
   ['Operand1Entered.BeforeDecimalPoint']: async (page) => {
-    expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+$/);
+    await expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+$/);
   },
   ['Operand1Entered.AfterDecimalPoint']: async (page) => {
-    expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+\.?\d*$/);
+    await expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+\.?\d*$/);
   },
   OperatorEntered: async (page) => {
-    expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)? [+−×÷] $/);
+    await expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)? [+−×÷] $/);
   },
   NegativeNumber2: async (page) => {
-    expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)? [+−×÷] -$/);
+    await expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)? [+−×÷] -$/);
   },
   ['Operand2Entered.Zero']: async (page) => {
-    // FIXME: add -0 state
-    expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)? [+−×÷] 0$/);
+    await expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)? [+−×÷] 0$/);
   },
   ['Operand2Entered.BeforeDecimalPoint']: async (page) => {
-    expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)? [+−×÷] -?\d+$/);
+    await expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)? [+−×÷] -?\d+$/);
   },
   ['Operand2Entered.AfterDecimalPoint']: async (page) => {
-    expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)? [+−×÷] -?\d+\.?\d*$/);
+    await expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)? [+−×÷] -?\d+\.?\d*$/);
   },
   AlertError: async (page) => {
-  expect(page.locator('data-test=error-zero-division')).toContainText('Ошибка: Деление на ноль');
-  expect(page.locator('data-test=commandOK')).toBeVisible();
-  expect(page.locator('data-test=commandOK')).toContainText('OK');
+  await expect(page.locator('data-test=error-zero-division')).toContainText('Ошибка: Деление на ноль');
+  await expect(page.locator('data-test=commandOK')).toBeVisible();
+  await expect(page.locator('data-test=commandOK')).toContainText('OK');
 },
 })
 
@@ -482,43 +518,43 @@ const model = createModel<Page>(machineWithTests).withEvents(
     },
     OPERATOR_CLICKED: {
       exec: async (page, { data }: OperatorClickedEvent) => {
-        await page.click(`data-test=operator${data}`);
+        await page.locator(`data-test=operator${data}`).click();
       },
       cases: [
-        { data: 'PLUS' },
-        { data: 'MINUS' },
-        // { data: 'MULTIPLY' },
-        { data: 'DIVIDE' }
+        { data: ArithmeticOperator.PLUS },
+        { data: ArithmeticOperator.MINUS },
+        { data: ArithmeticOperator.MULTIPLY },
+        { data: ArithmeticOperator.DIVIDE },
       ],
     },
     PERCENT_SIGN_CLICKED: {
       exec: async (page) => {
-        await page.click(`data-test=command${Commands.PERCENT}`);
+        await page.locator(`data-test=command${Commands.PERCENT}`).click();
       },
     },
     DECIMAL_POINT_CLICKED: {
       exec: async (page) => {
-        await page.click(`data-test=command${Commands.DECIMAL_POINT}`);
+        await page.locator(`data-test=command${Commands.DECIMAL_POINT}`).click();
       },
     },
     CLEAR_BUTTON_CLICKED: {
       exec: async (page) => {
-        await page.click(`data-test=command${Commands.CLEAR}`);
+        await page.locator(`data-test=command${Commands.CLEAR}`).click();
       },
     },
     EQUAL_SIGN_CLICKED: {
       exec: async (page) => {
-        await page.click(`data-test=command${Commands.EQUAL}`);
+        await page.locator(`data-test=command${Commands.EQUAL}`).click();
       },
     },
     OK_BUTTON_CLICKED: {
       exec: async (page) => {
-        await page.click(`data-test=command${Commands.OK}`)
+        await page.locator(`data-test=command${Commands.OK}`).click();
       }
     },
     RESET_CLICKED: {
       exec: async (page) => {
-        await page.click(`data-test=command${Commands.RESET}`);
+        await page.locator(`data-test=command${Commands.RESET}`).click();
       }
     },
     // PARENTHESES_CLICKED: {
@@ -527,71 +563,21 @@ const model = createModel<Page>(machineWithTests).withEvents(
     // },
   });
 
-const testPlans = model.getSimplePathPlans();
-// const testPlans = model.getSimplePathPlansTo('Cluster.Result');
-// const testPlans = model.getSimplePathPlansTo('NegativeNumber1');
-// const testPlans = model.getShortestPathPlans();
-// const testPlans = model.getTestPlans()
-// const testPlans = [model.getPlanFromEvents([
-//   { type: 'OPERATOR_CLICKED', data: "MINUS" },
-//   { type: 'DIGIT_CLICKED', data: 1 },
-//   { type: 'DECIMAL_POINT_CLICKED' },
-//   { type: 'DIGIT_CLICKED', data: 1 },
-//   { type: 'OPERATOR_CLICKED', data: "MINUS" },
-//   { type: 'DIGIT_CLICKED', data: 1 },
-//   { type: 'DECIMAL_POINT_CLICKED' },
-//   { type: 'EQUAL_SIGN_CLICKED' },
-// ], {
-//   target: 'Cluster.Result',
-// })];
+test.describe('MBT', () => {
+  const testPlans = model.getShortestPathPlans();
 
-test.describe('Calculator', () => {
-  let browser: Browser | undefined;
-  let page: Page | undefined;
-
-  test.beforeAll(async () => {
-    browser = await chromium.launch();
-    const context = await browser.newContext();
-    page = await context.newPage();
-
-    try {
-      await page.goto('http://127.0.0.1:5173');
-    } catch (e) {
-      console.error(e);
-    }
+  dedupPathPlans(testPlans).forEach((plan) => {
+    test.describe(plan.description, () => {
+      plan.paths.forEach((path) => {
+        test(path.description, async ({ page }) => {
+          await page.goto(`/`);
+          await path.test(page);
+        })
+      })
+    })
   });
+});
 
-  // test.afterEach(async ({ page }, testInfo) => {
-  //   if (!process.env.CI && testInfo.status !== testInfo.expectedStatus) {
-  //     process.stderr.write(
-  //       `❌ ❌ PLAYWRIGHT TEST FAILURE ❌ ❌\n${
-  //         testInfo.error?.stack || testInfo.error
-  //       }\n`,
-  //     )
-  //     // testInfo.setTimeout(0)
-  //     await page.pause();
-  //   }
-  // })
-
-  test.afterAll(async () => {
-    await browser!.close();
-  });
-
-  test.describe.parallel('MBT', async () => {
-    dedupPathPlans
-    (testPlans).forEach(plan => {
-      // FIXME parallel exec of plans?
-      test.describe(plan.description, () => {
-        plan.paths.forEach(path => {
-          test(path.description, async () => {
-            await path.test(page!);
-          });
-        });
-      });
-    });
-  });
-
-  // test('should have full coverage', () => {
-  //   return model.testCoverage();
-  // })
-})
+// test.describe('Should have full coverage', () => {
+//   return model.testCoverage();
+// });

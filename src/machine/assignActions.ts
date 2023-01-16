@@ -103,7 +103,7 @@ export const assignOperand2ParsedFloat = assign<MachineContext>({
   operand2: ({ operand2 }) => `${parseFloat(operand2!)}`,
 });
 
-export const assignResetContext = assign(() => INITIAL_CONTEXT);
+export const assignResetContext = assign<MachineContext>(() => INITIAL_CONTEXT);
 
 export const assignActions = {
   assignOperand1,
