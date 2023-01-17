@@ -144,7 +144,7 @@ export function App() {
         type="text"
         readOnly
         value={
-          `${state.matches('NegativeNumber1') ? '-' : ''}${operand1 ?? ''}${state.matches('Operand1Entered.AfterDecimalPoint.EmptyDecimal') ? '.' : ''}${ArithmeticOperatorMap[operator!] ? ` ${ArithmeticOperatorMap[operator!].displaySign} ` : ''}${state.matches('NegativeNumber2') ? '-' : ''}${operand2 ?? ''}${state.matches('Operand2Entered.AfterDecimalPoint.EmptyDecimal') ? '.' : ''}`
+          `${state.matches('NegativeNumber1') ? '-' : ''}${operand1 ?? ''}${ArithmeticOperatorMap[operator!] ? ` ${ArithmeticOperatorMap[operator!].displaySign} ` : ''}${state.matches('NegativeNumber2') ? '-' : ''}${operand2 ?? ''}`
         }
         className="calc-input"
         data-test="calc-input"
