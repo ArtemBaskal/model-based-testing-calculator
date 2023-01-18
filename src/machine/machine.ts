@@ -4,7 +4,7 @@ import type { MachineContext, MachineEvents } from "./type";
 import { ArithmeticOperator, INITIAL_CONTEXT } from "./type";
 import { everyGuard } from "./guards";
 
-// TODO: typestate
+// TODO: add typestate with typegen
 // TODO: add keyboard click events listeners
 // TODO: vue
 // TODO: property based tests for actions
@@ -52,7 +52,7 @@ export const machine = createMachine(
             {
               description: "0",
               cond: 'isCurrentOperandZero',
-              actions: ['assignOperand1'],
+              actions: ['assignOperand1Zero'],
               target: "Operand1Entered.Zero",
             },
             {
@@ -155,7 +155,7 @@ export const machine = createMachine(
             {
               description: "0",
               cond: 'isCurrentOperandZero',
-              actions: ['assignOperand2'],
+              actions: ['assignOperand2Zero'],
               target: "Operand2Entered.Zero",
             },
             {
@@ -304,10 +304,10 @@ export const machine = createMachine(
     guards: {
       isCurrentOperandZero: (context, { data }) => data === 0,
       isTheMinusOperator: (context, { data }) => data === ArithmeticOperator.MINUS,
-      isDivideByZero: everyGuard([
+      isDivideByZero: everyGuard(
         ({ operator }) => operator === ArithmeticOperator.DIVIDE,
-        ({ operand2 }) => parseFloat(operand2!) === 0
-      ]),
+        ({ operand2 }) => parseFloat(operand2!) === 0,
+      ),
     },
     actions: {
       assignAddDigitToOperand1: immutableAssign((context, {  data }) => {
