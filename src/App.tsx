@@ -1,11 +1,6 @@
 import { useCallback } from "react";
-import { useActor, useInterpret, useSelector } from '@xstate/react';
+import { useActor, useInterpret } from '@xstate/react';
 import { machine } from "./machine/machine";
-import {
-  selectOperator,
-  selectOperand1,
-  selectOperand2,
-} from "./machine/selectors";
 import { Digit, ArithmeticOperator } from "./machine/type";
 import { MachineEventTypes } from "./machine/events";
 import type { ValueOf } from "./types";
@@ -78,6 +73,10 @@ const CommandsMap = {
   },
 }
 
+// FIXME: add types
+// @ts-ignore
+export const matchesSome = (state, patterns) => patterns.some(pattern => state.matches(pattern));
+
 const DIGITS = [7, 8, 9, 4, 5, 6, 1, 2, 3, 0] as const;
 const OPERATORS = [ArithmeticOperatorMap.DIVIDE, ArithmeticOperatorMap.MULTIPLY, ArithmeticOperatorMap.MINUS, ArithmeticOperatorMap.PLUS] as const;
 const COMMANDS = [CommandsMap.PARENTHESES, CommandsMap.PERCENT, CommandsMap.RESET, CommandsMap.CLEAR] as const;
@@ -85,9 +84,6 @@ const COMMANDS = [CommandsMap.PARENTHESES, CommandsMap.PERCENT, CommandsMap.RESE
 export function App() {
   const machineService = useInterpret(machine, { devTools: true });
   const [state, send] = useActor(machineService);
-  const operand1 = useSelector(machineService, selectOperand1);
-  const operand2 = useSelector(machineService, selectOperand2);
-  const operator = useSelector(machineService, selectOperator);
 
   const renderDigitButton = useCallback((digit: Digit) => <button
     key={digit}
@@ -121,17 +117,18 @@ export function App() {
     {displaySign}
   </button>, [state]);
 
-  const renderCommand = useCallback(({ eventType, displaySign, 'data-test': dataTest }: ValueOf<typeof CommandsMap>) => <button
-    key={displaySign}
-    type="button"
-    onClick={() => {
-      send({ type: eventType })
-    }}
-    disabled={!state.can(eventType)}
-    data-test={`command${dataTest}`}
-  >
-    {displaySign}
-  </button>, [state]);
+  const renderCommand = useCallback(({ eventType, displaySign, 'data-test': dataTest }: ValueOf<typeof CommandsMap>) =>
+    <button
+      key={displaySign}
+      type="button"
+      onClick={() => {
+        send({ type: eventType })
+      }}
+      disabled={!state.can(eventType)}
+      data-test={`command${dataTest}`}
+    >
+      {displaySign}
+    </button>, [state]);
 
   return (
     <div className="App">
@@ -144,7 +141,32 @@ export function App() {
         type="text"
         readOnly
         value={
-          `${state.matches('NegativeNumber1') ? '-' : ''}${operand1 ?? ''}${ArithmeticOperatorMap[operator!] ? ` ${ArithmeticOperatorMap[operator!].displaySign} ` : ''}${state.matches('NegativeNumber2') ? '-' : ''}${operand2 ?? ''}`
+          `${
+            state.matches('NegativeNumber1')
+              ? '-'
+              : ''
+          }${
+            state.matches({ Cluster: 'Start' })
+            || state.matches('NegativeNumber1')
+              ? ''
+              : state.context.operand1
+          }${
+            state.matches('OperatorEntered')
+            || state.matches('NegativeNumber2')
+            || state.matches('Operand2Entered')
+            || state.matches('AlertError')
+              ? ` ${ArithmeticOperatorMap[state.context.operator].displaySign} `
+              : ''
+          }${
+            state.matches('NegativeNumber2')
+              ? '-'
+              : ''
+          }${
+            state.matches('Operand2Entered')
+            || state.matches('AlertError')
+              ? state.context.operand2
+              : ''
+          }`
         }
         className="calc-input"
         data-test="calc-input"

@@ -1,7 +1,7 @@
 import type { State } from 'xstate/lib/State';
-import type { MachineContext, MachineEvents } from "./type";
+import type { MachineContext, MachineEvents, TypeState } from "./type";
 
-export interface SelectorParams extends State<MachineContext, MachineEvents> {
+export interface SelectorParams extends State<MachineContext, MachineEvents, {}, TypeState> {
 }
 
 export const selectOperand1 = ({ context }: SelectorParams) => context.operand1;

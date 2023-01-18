@@ -1,11 +1,11 @@
-import type { ValueOf } from "../types";
-import { MachineEventTypes } from "./events";
-import type { ConditionPredicate, EventObject } from "xstate";
+import type { ValueOf } from '../types';
+import type { ConditionPredicate, EventObject } from 'xstate';
+import { MachineEventTypes } from './events';
 
 interface MachineContextCache {
 }
 
-interface MachineContextState {
+interface MachineContextStatePartial {
   operand1?: string,
   operand2?: string,
   operator?: ArithmeticOperator,
@@ -17,7 +17,13 @@ interface MachineContextStateRequired {
   operator: ArithmeticOperator,
 }
 
-export interface MachineContext extends Partial<Readonly<MachineContextCache>>, MachineContextState {
+interface MachineContextStateNever {
+  operand1: never,
+  operand2: never,
+  operator: never,
+}
+
+export interface MachineContext extends Partial<Readonly<MachineContextCache>>, MachineContextStatePartial {
 }
 
 export type MachineEventTypes = typeof MachineEventTypes;
@@ -89,52 +95,49 @@ export type MachineEvents =
 
 export const INITIAL_CONTEXT: MachineContext = {};
 
-export type GuardFunc<Event extends EventObject = MachineEvents> = ConditionPredicate<MachineContext,
-  Event>;
+export type GuardFunc<Event extends EventObject = MachineEvents> = ConditionPredicate<MachineContext, Event>;
 
-type Modify<T, R> = Omit<T, keyof R> & R;
+type Modify<T, R extends { [P in keyof T]?: any }> = Omit<T, keyof R> & R;
 
-export type Typestate =
+type Zero = '0';
+
+export type TypeState =
   {
     value: { Cluster: 'Start' }
       | 'NegativeNumber1',
-    context: {},
+    context: MachineContextStateNever,
   } |
   {
     value: 'Operand1Entered'
       | { Operand1Entered: 'AfterDecimalPoint' }
       | { Operand1Entered: 'BeforeDecimalPoint' }
-      | { Operand1Entered: 'Zero' }
       | { Cluster: 'Result' },
-    context: Pick<MachineContextStateRequired, 'operand1'>,
+    context: Modify<MachineContextStateNever, Pick<MachineContextStateRequired, 'operand1'>>,
   } |
   {
     value: { Operand1Entered: 'Zero' },
-    context: Modify<MachineContextStateRequired, { 'operand1': '0' }>
+    context: Modify<MachineContextStateNever, { 'operand1': Zero }>
   } |
   {
     value: 'OperatorEntered' | 'NegativeNumber2',
-    context: Pick<MachineContextStateRequired, 'operand1' | 'operator'>,
+    context: Modify<MachineContextStateNever, Pick<MachineContextStateRequired, 'operand1' | 'operator'>>,
   } |
   {
     value: 'Operand2Entered'
       | { Operand2Entered: 'AfterDecimalPoint' }
       | { Operand2Entered: 'BeforeDecimalPoint' }
-      | { Operand2Entered: 'Zero' },
     context: MachineContextStateRequired,
   } |
   {
     value: { Operand2Entered: 'Zero' },
-    context: Modify<MachineContextStateRequired, { operand2: '0' }>,
+    context: Modify<MachineContextStateRequired, { operand2: Zero }>,
   } |
   {
     value: 'AlertError',
-    context: Modify<MachineContextStateRequired, { "operator": "DIVIDE", "operand2": "0" }>,
+    context: Modify<MachineContextStateRequired, { 'operator': Extract<ArithmeticOperator, 'DIVIDE'>, 'operand2': Zero }>,
   } |
   {
     value: 'Cluster',
-    context: {
-      operand1?: Pick<MachineContextStateRequired, 'operand1'>
-    },
+    context: Modify<MachineContextStateNever, Pick<MachineContextStatePartial, 'operand1'>>,
   }
 

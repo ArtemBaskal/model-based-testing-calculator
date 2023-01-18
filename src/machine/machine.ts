@@ -1,14 +1,24 @@
 import { assign, createMachine } from "xstate";
 import { assign as immutableAssign } from "@xstate/immer";
-import type { MachineContext, MachineEvents } from "./type";
+import type {
+  ClearButtonClickedEvent,
+  DecimalPointClickedEvent,
+  DigitClickedEvent,
+  EqualSignClickedEvent,
+  MachineContext,
+  MachineEvents,
+  OperatorClickedEvent,
+  PercentSignClickedEvent,
+  ResetClickedEvent,
+  TypeState,
+} from "./type";
 import { ArithmeticOperator, INITIAL_CONTEXT } from "./type";
 import { everyGuard } from "./guards";
 
-// TODO: add typestate with typegen
 // TODO: add keyboard click events listeners
 // TODO: vue
 // TODO: property based tests for actions
-export const machine = createMachine(
+export const machine = createMachine<MachineContext, MachineEvents, TypeState>(
   {
     predictableActionArguments: true,
     context: INITIAL_CONTEXT,
@@ -18,7 +28,7 @@ export const machine = createMachine(
       context: {} as MachineContext,
       events: {} as MachineEvents,
     },
-    tsTypes: {} as import("./machine.typegen").Typegen0,
+    // tsTypes: {} as import("./machine.typegen").Typegen0,
     states: {
       Cluster: {
         initial: "Start",
@@ -302,24 +312,24 @@ export const machine = createMachine(
   },
   {
     guards: {
-      isCurrentOperandZero: (context, { data }) => data === 0,
-      isTheMinusOperator: (context, { data }) => data === ArithmeticOperator.MINUS,
+      isCurrentOperandZero: (_: MachineContext, { data }: DigitClickedEvent) => data === 0,
+      isTheMinusOperator: (_: MachineContext, { data }: OperatorClickedEvent) => data === ArithmeticOperator.MINUS,
       isDivideByZero: everyGuard(
-        ({ operator }) => operator === ArithmeticOperator.DIVIDE,
-        ({ operand2 }) => parseFloat(operand2!) === 0,
+        ({ operator }: MachineContext, _: EqualSignClickedEvent) => operator === ArithmeticOperator.DIVIDE,
+        ({ operand2 }: MachineContext, _: EqualSignClickedEvent) => parseFloat(operand2!) === 0,
       ),
     },
     actions: {
-      assignAddDigitToOperand1: immutableAssign((context, {  data }) => {
+      assignAddDigitToOperand1: immutableAssign<MachineContext, DigitClickedEvent>((context, { data }) => {
         context.operand1 = `${context.operand1!}${data}`;
       }),
-      assignAddDigitToOperand2: assign({
+      assignAddDigitToOperand2: assign<MachineContext, DigitClickedEvent>({
         operand2: ({ operand2 }, { data }) => `${operand2!}${data}`,
       }),
-      assignOperand1: assign({
-        operand1: (context, { data }) => `${data}`,
+      assignOperand1: assign<MachineContext, DigitClickedEvent>({
+        operand1: (_, { data }) => `${data}`,
       }),
-      assignOperand1Calculated: assign({
+      assignOperand1Calculated: assign<MachineContext, EqualSignClickedEvent>({
         operand1: ({ operand1, operand2, operator }) => {
           const o1 = parseFloat(operand1!);
           const o2 = parseFloat(operand2!);
@@ -340,47 +350,47 @@ export const machine = createMachine(
           }
         },
       }),
-      assignOperand1DecimalPoint: assign({
+      assignOperand1DecimalPoint: assign<MachineContext, DecimalPointClickedEvent>({
         operand1: ({ operand1 }) => `${operand1!}.`,
       }),
-      assignOperand1DividedBy100: assign({
+      assignOperand1DividedBy100: assign<MachineContext, PercentSignClickedEvent>({
         operand1: ({ operand1 }) => `${parseFloat(operand1!) / 100}`,
       }),
-      assignOperand1Negative: assign({
-        operand1: (context, { data }) => `-${data}`,
+      assignOperand1Negative: assign<MachineContext, DigitClickedEvent>({
+        operand1: (_, { data }) => `-${data}`,
       }),
-      assignOperand1ParsedFloat: assign({
+      assignOperand1ParsedFloat: assign<MachineContext, OperatorClickedEvent | ClearButtonClickedEvent | ResetClickedEvent | { type: "xstate.stop" }>({
         operand1: ({ operand1 }) => `${parseFloat(operand1!)}`,
       }),
-      assignOperand1Zero: assign({
+      assignOperand1Zero: assign<MachineContext, DecimalPointClickedEvent>({
         operand1: (_) => '0',
       }),
-      assignOperand2: assign({
-        operand2: (context, { data }) => `${data}`,
+      assignOperand2: assign<MachineContext, DigitClickedEvent>({
+        operand2: (_, { data }) => `${data}`,
       }),
-      assignOperand2DecimalPoint: assign({
+      assignOperand2DecimalPoint: assign<MachineContext, DecimalPointClickedEvent>({
         operand2: ({ operand2 }) => `${operand2!}.`,
       }),
-      assignOperand2Negative: assign({
-        operand2: (context, { data }) => `-${data}`,
+      assignOperand2Negative: assign<MachineContext, DigitClickedEvent>({
+        operand2: (_, { data }) => `-${data}`,
       }),
       assignOperand2ParsedFloat: assign({
         operand2: ({ operand2 }) => `${parseFloat(operand2!)}`,
       }),
-      assignOperand2Zero: assign({
+      assignOperand2Zero: assign<MachineContext, DecimalPointClickedEvent>({
         operand2: (_) => '0',
       }),
-      assignOperator: assign({
-        operator: (context, { data }) => data,
+      assignOperator: assign<MachineContext, OperatorClickedEvent>({
+        operator: (_, { data }) => data,
       }),
-      assignResetContext: assign((_) => INITIAL_CONTEXT),
-      assignResetOperand1: assign({
+      assignResetContext: assign<MachineContext, ClearButtonClickedEvent | EqualSignClickedEvent | ResetClickedEvent | { type: "xstate.init" }>((_) => INITIAL_CONTEXT),
+      assignResetOperand1: assign<MachineContext, ClearButtonClickedEvent | ResetClickedEvent>({
         operand1: (_) => INITIAL_CONTEXT.operand1,
       }),
-      assignResetOperand2: assign({
+      assignResetOperand2: assign<MachineContext,  ClearButtonClickedEvent | EqualSignClickedEvent | ResetClickedEvent>({
         operand2: (_) => INITIAL_CONTEXT.operand2,
       }),
-      assignResetOperator: assign({
+      assignResetOperator: assign<MachineContext,  EqualSignClickedEvent | ResetClickedEvent>({
         operator: (_) => INITIAL_CONTEXT.operator,
       }),
     },
