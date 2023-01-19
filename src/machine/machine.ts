@@ -16,6 +16,8 @@ import {
 } from "./type";
 import { everyGuard } from "./guards";
 
+// TODO: add storybook with predefined story states
+// TODO: add service invocation for result calculation
 // TODO: add keyboard click events listeners
 // TODO: vue
 // TODO: property based tests for actions
@@ -312,8 +314,11 @@ export const machine = createMachine<MachineContext, MachineEvents, TypeState>(
   },
   {
     guards: {
+      // @ts-ignore
       isCurrentOperandZero: (_: MachineContext, { data }: DigitClickedEvent) => data === 0,
+      // @ts-ignore
       isTheMinusOperator: (_: MachineContext, { data }: OperatorClickedEvent) => data === ArithmeticOperator.MINUS,
+      // @ts-ignore
       isDivideByZero: everyGuard(
         ({ operator }: MachineContext, _: EqualSignClickedEvent) => operator === ArithmeticOperator.DIVIDE,
         ({ operand2 }: MachineContext, _: EqualSignClickedEvent) => parseFloat(operand2!) === 0,
