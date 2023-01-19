@@ -1,15 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { createModel } from '@xstate/test';
-import { assign, createMachine } from "xstate";
-import type { AnyStateMachine, EventObject } from "xstate";
-import type { Page } from "playwright-core";
-import type { TestPlan } from "@xstate/test/es/types";
-import type {
-  GuardFunc,
-  MachineContext,
-  MachineEvents,
-  DigitClickedEvent,
-  OperatorClickedEvent
+import { assign, createMachine, type AnyStateMachine, type EventObject } from "xstate";
+import { type Page } from "playwright-core";
+import { type TestPlan } from "@xstate/test/es/types";
+import {
+  type GuardFunc,
+  type MachineContext,
+  type MachineEvents,
+  type DigitClickedEvent,
+  type OperatorClickedEvent
 } from "../src/machine/type";
 
 /**

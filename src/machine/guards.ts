@@ -1,5 +1,5 @@
-import type { GuardFunc } from "./type";
-import type { EventObject } from "xstate";
+import { type EventObject } from "xstate";
+import { type GuardFunc } from "./type";
 
 export const everyGuard =
   <T extends EventObject>(...guards: GuardFunc<T>[]) =>

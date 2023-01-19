@@ -1,5 +1,5 @@
-import type { ValueOf } from '../types';
-import type { ConditionPredicate, EventObject } from 'xstate';
+import { type ConditionPredicate, type EventObject } from 'xstate';
+import { type ValueOf } from '../types';
 import { MachineEventTypes } from './events';
 
 interface MachineContextCache {

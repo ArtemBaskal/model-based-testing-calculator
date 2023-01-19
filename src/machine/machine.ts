@@ -1,18 +1,19 @@
 import { assign, createMachine } from "xstate";
 import { assign as immutableAssign } from "@xstate/immer";
-import type {
-  ClearButtonClickedEvent,
-  DecimalPointClickedEvent,
-  DigitClickedEvent,
-  EqualSignClickedEvent,
-  MachineContext,
-  MachineEvents,
-  OperatorClickedEvent,
-  PercentSignClickedEvent,
-  ResetClickedEvent,
-  TypeState,
+import {
+  type ClearButtonClickedEvent,
+  type DecimalPointClickedEvent,
+  type DigitClickedEvent,
+  type EqualSignClickedEvent,
+  type MachineContext,
+  type MachineEvents,
+  type OperatorClickedEvent,
+  type PercentSignClickedEvent,
+  type ResetClickedEvent,
+  type TypeState,
+  ArithmeticOperator,
+  INITIAL_CONTEXT,
 } from "./type";
-import { ArithmeticOperator, INITIAL_CONTEXT } from "./type";
 import { everyGuard } from "./guards";
 
 // TODO: add keyboard click events listeners

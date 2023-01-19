@@ -1,5 +1,5 @@
-import type { State } from 'xstate/lib/State';
-import type { MachineContext, MachineEvents, TypeState } from "./type";
+import { type State } from 'xstate/lib/State';
+import { type MachineContext, type MachineEvents, type TypeState } from "./type";
 
 export interface SelectorParams extends State<MachineContext, MachineEvents, {}, TypeState> {
 }

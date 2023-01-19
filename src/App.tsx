@@ -1,9 +1,9 @@
 import { useCallback } from "react";
 import { useActor, useInterpret } from '@xstate/react';
 import { machine } from "./machine/machine";
-import { Digit, ArithmeticOperator } from "./machine/type";
+import { ArithmeticOperator, type Digit } from "./machine/type";
 import { MachineEventTypes } from "./machine/events";
-import type { ValueOf } from "./types";
+import { type ValueOf } from "./types";
 import './App.css'
 
 const ArithmeticOperatorMap = {
