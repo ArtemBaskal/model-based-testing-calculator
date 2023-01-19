@@ -14,7 +14,7 @@ export const config: PlaywrightTestConfig = {
   testDir: './tests',
   testMatch: '*.test.ts',
   timeout: 150000,
-  workers: 1,
+  workers: 4,
 };
 
 export default config;

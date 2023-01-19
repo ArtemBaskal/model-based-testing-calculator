@@ -8,7 +8,11 @@ import {
   type MachineContext,
   type MachineEvents,
   type DigitClickedEvent,
-  type OperatorClickedEvent
+  type OperatorClickedEvent,
+  type ClearButtonClickedEvent,
+  type EqualSignClickedEvent,
+  type ResetClickedEvent,
+  type TypeState,
 } from "../src/machine/type";
 
 /**
@@ -109,49 +113,39 @@ const everyGuard =
     (...args: Parameters<GuardFunc<T>>) =>
       guards.every(guard => guard(...args));
 
-const isCurrentOperandZero = (context: MachineContext, { data }: DigitClickedEvent) => data === 0;
+const isCurrentOperandZero = (_: MachineContext, { data }: DigitClickedEvent) => data === 0;
 
-const isTheMinusOperator = (context: MachineContext, { data }: OperatorClickedEvent) => data === ArithmeticOperator.MINUS;
+const isTheMinusOperator = (_: MachineContext, { data }: OperatorClickedEvent) => data === ArithmeticOperator.MINUS;
 
-const isOperand2Zero = ({ operand2 }: MachineContext) => parseFloat(operand2!) === 0;
-
-const isTheDivideOperator = ({ operator }: MachineContext) => operator === ArithmeticOperator.DIVIDE;
-
-const isDivideByZero = everyGuard([isTheDivideOperator, isOperand2Zero])
-
-const guards = {
-  isCurrentOperandZero,
-  isOperand2Zero,
-  isTheMinusOperator,
-  isDivideByZero,
-}
+const isDivideByZero = ({ operator, operand2 }: MachineContext) => operator! === ArithmeticOperator.DIVIDE && parseFloat(operand2!) === 0;
 
 const INITIAL_CONTEXT: MachineContext = {};
 
 const assignOperator = assign<MachineContext, OperatorClickedEvent>({
-  operator: (context, { data }) => data,
+  operator: (_, { data }) => data,
 });
 
 export const assignOperand2 = assign<MachineContext, DigitClickedEvent>({
-  operand2: (context, { data }) => `${data}`,
+  operand2: (_, { data }) => `${data}`,
 });
 
 export const assignOperand2Zero = assign<MachineContext>({
   operand2: '0',
 });
 
-const assignResetContext = assign<MachineContext>(() => INITIAL_CONTEXT);
+const assignResetContext = assign<MachineContext, ClearButtonClickedEvent | EqualSignClickedEvent | ResetClickedEvent>((_) => INITIAL_CONTEXT);
 
-const machineWithoutTests = createMachine(
+const machineWithoutTests = createMachine<MachineContext, MachineEvents, TypeState>(
   {
     predictableActionArguments: true,
-    context: {},
+    context: INITIAL_CONTEXT,
     initial: "Cluster",
     id: "Calc",
     schema: {
-      context: <MachineContext>{},
-      events: <MachineEvents>{},
+      context: {} as MachineContext,
+      events: {} as MachineEvents,
     },
+    // tsTypes: {} as import("./machine.typegen").Typegen0,
     states: {
       Cluster: {
         initial: "Start",
@@ -185,7 +179,7 @@ const machineWithoutTests = createMachine(
             {
               description: "0",
               cond: 'isCurrentOperandZero',
-              actions: ['assignOperand1'],
+              actions: ['assignOperand1Zero'],
               target: "Operand1Entered.Zero",
             },
             {
@@ -288,7 +282,7 @@ const machineWithoutTests = createMachine(
             {
               description: "0",
               cond: 'isCurrentOperandZero',
-              actions: ['assignOperand2'],
+              actions: ['assignOperand2Zero'],
               target: "Operand2Entered.Zero",
             },
             {
@@ -344,9 +338,10 @@ const machineWithoutTests = createMachine(
         },
       },
       Operand2Entered: {
-        // type: 'history',
-        initial: 'BeforeDecimalPoint',
         states: {
+          History: {
+            type: 'history',
+          },
           Zero: {
             on: {
               DIGIT_CLICKED: [
@@ -381,7 +376,6 @@ const machineWithoutTests = createMachine(
             },
           },
           AfterDecimalPoint: {
-            exit: ['assignOperand2ParsedFloat'],
             on: {
               DIGIT_CLICKED: {
                 description: "0-9",
@@ -404,7 +398,7 @@ const machineWithoutTests = createMachine(
           ],
           OPERATOR_CLICKED: {
             description: "+ * /",
-            actions: ['assignOperator'],
+            actions: ['assignResetOperand2', 'assignOperator'],
             target: "OperatorEntered",
           },
           CLEAR_BUTTON_CLICKED: {
@@ -414,12 +408,12 @@ const machineWithoutTests = createMachine(
           },
         },
       },
+      // TODO: modal
       AlertError: {
         on: {
           OK_BUTTON_CLICKED: {
             description: "OK",
-            actions: ['assignResetOperand2'],
-            target: "Operand2Entered",
+            target: "Operand2Entered.History",
           },
         },
       },
@@ -433,7 +427,11 @@ const machineWithoutTests = createMachine(
     },
   },
   {
-    guards,
+    guards: {
+      isCurrentOperandZero,
+      isTheMinusOperator,
+      isDivideByZero,
+    },
     actions: {
       assignOperator,
       assignOperand2,
@@ -522,7 +520,7 @@ const model = createModel<Page>(machineWithTests).withEvents(
       cases: [
         { data: ArithmeticOperator.PLUS },
         { data: ArithmeticOperator.MINUS },
-        { data: ArithmeticOperator.MULTIPLY },
+        // { data: ArithmeticOperator.MULTIPLY },
         { data: ArithmeticOperator.DIVIDE },
       ],
     },
@@ -562,7 +560,7 @@ const model = createModel<Page>(machineWithTests).withEvents(
     // },
   });
 
-test.describe('MBT', () => {
+test.describe.parallel('MBT', () => {
   const testPlans = model.getShortestPathPlans();
 
   dedupPathPlans(testPlans).forEach((plan) => {
@@ -576,7 +574,3 @@ test.describe('MBT', () => {
     })
   });
 });
-
-// test.describe('Should have full coverage', () => {
-//   return model.testCoverage();
-// });

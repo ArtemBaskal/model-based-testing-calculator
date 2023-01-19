@@ -222,9 +222,10 @@ export const machine = createMachine<MachineContext, MachineEvents, TypeState>(
         },
       },
       Operand2Entered: {
-        // FIXME: debug history without initial
-        // type: 'history',
         states: {
+          History: {
+            type: 'history',
+          },
           Zero: {
             on: {
               DIGIT_CLICKED: [
@@ -259,7 +260,6 @@ export const machine = createMachine<MachineContext, MachineEvents, TypeState>(
             },
           },
           AfterDecimalPoint: {
-            exit: ['assignOperand2ParsedFloat'],
             on: {
               DIGIT_CLICKED: {
                 description: "0-9",
@@ -282,7 +282,7 @@ export const machine = createMachine<MachineContext, MachineEvents, TypeState>(
           ],
           OPERATOR_CLICKED: {
             description: "+ * /",
-            actions: ['assignOperator'],
+            actions: ['assignResetOperand2', 'assignOperator'],
             target: "OperatorEntered",
           },
           CLEAR_BUTTON_CLICKED: {
@@ -297,8 +297,7 @@ export const machine = createMachine<MachineContext, MachineEvents, TypeState>(
         on: {
           OK_BUTTON_CLICKED: {
             description: "OK",
-            // actions: ['assignResetOperand2'],
-            target: "Operand2Entered",
+            target: "Operand2Entered.History",
           },
         },
       },
@@ -360,7 +359,7 @@ export const machine = createMachine<MachineContext, MachineEvents, TypeState>(
       assignOperand1Negative: assign<MachineContext, DigitClickedEvent>({
         operand1: (_, { data }) => `-${data}`,
       }),
-      assignOperand1ParsedFloat: assign<MachineContext, OperatorClickedEvent | ClearButtonClickedEvent | ResetClickedEvent | { type: "xstate.stop" }>({
+      assignOperand1ParsedFloat: assign<MachineContext, OperatorClickedEvent | ClearButtonClickedEvent | ResetClickedEvent>({
         operand1: ({ operand1 }) => `${parseFloat(operand1!)}`,
       }),
       assignOperand1Zero: assign<MachineContext, DecimalPointClickedEvent>({
@@ -384,7 +383,7 @@ export const machine = createMachine<MachineContext, MachineEvents, TypeState>(
       assignOperator: assign<MachineContext, OperatorClickedEvent>({
         operator: (_, { data }) => data,
       }),
-      assignResetContext: assign<MachineContext, ClearButtonClickedEvent | EqualSignClickedEvent | ResetClickedEvent | { type: "xstate.init" }>((_) => INITIAL_CONTEXT),
+      assignResetContext: assign<MachineContext, ClearButtonClickedEvent | EqualSignClickedEvent | ResetClickedEvent>((_) => INITIAL_CONTEXT),
       assignResetOperand1: assign<MachineContext, ClearButtonClickedEvent | ResetClickedEvent>({
         operand1: (_) => INITIAL_CONTEXT.operand1,
       }),
