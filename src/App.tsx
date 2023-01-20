@@ -1,9 +1,9 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from 'react';
 import { useActor, useInterpret } from '@xstate/react';
-import { machine } from "./machine/machine";
-import { ArithmeticOperator, type Digit } from "./machine/type";
-import { MachineEventTypes } from "./machine/events";
-import { type ValueOf } from "./types";
+import { machine } from './machine/machine';
+import { ArithmeticOperator, type Digit, type MachineEvents } from './machine/type';
+import { MachineEventTypes } from './machine/events';
+import { type ValueOf } from './types';
 import './App.css'
 
 const ArithmeticOperatorMap = {
@@ -81,9 +81,21 @@ const DIGITS = [7, 8, 9, 4, 5, 6, 1, 2, 3, 0] as const;
 const OPERATORS = [ArithmeticOperatorMap.DIVIDE, ArithmeticOperatorMap.MULTIPLY, ArithmeticOperatorMap.MINUS, ArithmeticOperatorMap.PLUS] as const;
 const COMMANDS = [CommandsMap.PARENTHESES, CommandsMap.PERCENT, CommandsMap.RESET, CommandsMap.CLEAR] as const;
 
-export function App() {
+type AppProps = {
+  fastForwardEvents?: MachineEvents[],
+};
+
+export function App({ fastForwardEvents }: AppProps) {
   const machineService = useInterpret(machine, { devTools: true });
   const [state, send] = useActor(machineService);
+
+  useEffect(() => {
+    if (fastForwardEvents) {
+      fastForwardEvents.forEach((event) => {
+        send(event);
+      });
+    }
+  }, [fastForwardEvents, send])
 
   const renderDigitButton = useCallback((digit: Digit) => <button
     key={digit}
