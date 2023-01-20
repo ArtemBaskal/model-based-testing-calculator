@@ -107,7 +107,7 @@ const ArithmeticOperator = {
 
 const INITIAL_CONTEXT: MachineContext = {};
 
-const machineWithoutTests = createMachine<MachineContext, MachineEvents, TypeState>(  {
+const machineWithoutTests = createMachine<MachineContext, MachineEvents, TypeState>({
     predictableActionArguments: true,
     context: INITIAL_CONTEXT,
     initial: "Cluster",
@@ -173,7 +173,7 @@ const machineWithoutTests = createMachine<MachineContext, MachineEvents, TypeSta
             {
               description: "0",
               cond: 'isCurrentOperandZero',
-              actions: ['assignOperand1Zero'],
+              actions: ['assignOperand1Negative'],
               target: "Operand1Entered.Zero",
             },
             {
@@ -184,7 +184,7 @@ const machineWithoutTests = createMachine<MachineContext, MachineEvents, TypeSta
           ],
           DECIMAL_POINT_CLICKED: {
             description: ".",
-            actions: ['assignOperand1Zero', 'assignOperand1DecimalPoint'],
+            actions: ['assignOperand1NegativeZero', 'assignOperand1DecimalPoint'],
             target: "Operand1Entered.AfterDecimalPoint",
           },
           CLEAR_BUTTON_CLICKED: {
@@ -309,7 +309,7 @@ const machineWithoutTests = createMachine<MachineContext, MachineEvents, TypeSta
           ],
           DECIMAL_POINT_CLICKED: {
             description: ".",
-            actions: ['assignOperand2Zero', 'assignOperand2DecimalPoint'],
+            actions: ['assignOperand2NegativeZero', 'assignOperand2DecimalPoint'],
             target: "Operand2Entered.AfterDecimalPoint",
           },
           CLEAR_BUTTON_CLICKED: {
@@ -429,8 +429,8 @@ const machineWithoutTests = createMachine<MachineContext, MachineEvents, TypeSta
       }),
       assignResetContext: assign((_) => INITIAL_CONTEXT),
       assignResetOperator: assign({
-      operator: (_) => INITIAL_CONTEXT.operator,
-    })
+        operator: (_) => INITIAL_CONTEXT.operator,
+      })
     },
   }
 );
@@ -473,10 +473,10 @@ const machineWithTests = addTestsToMachine(machineWithoutTests, {
     await expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)? [+−×÷] -?\d+\.?\d*$/);
   },
   AlertError: async (page) => {
-  await expect(page.locator('data-test=error-zero-division')).toContainText('Ошибка: Деление на ноль');
-  await expect(page.locator('data-test=commandOK')).toBeVisible();
-  await expect(page.locator('data-test=commandOK')).toContainText('OK');
-},
+    await expect(page.locator('data-test=error-zero-division')).toContainText('Ошибка: Деление на ноль');
+    await expect(page.locator('data-test=commandOK')).toBeVisible();
+    await expect(page.locator('data-test=commandOK')).toContainText('OK');
+  },
 })
 
 const Commands = {

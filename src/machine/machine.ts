@@ -90,7 +90,7 @@ createMachine<MachineContext, MachineEvents, TypeState>(
             {
               description: "0",
               cond: 'isCurrentOperandZero',
-              actions: ['assignOperand1Zero'],
+              actions: ['assignOperand1Negative'],
               target: "Operand1Entered.Zero",
             },
             {
@@ -101,7 +101,7 @@ createMachine<MachineContext, MachineEvents, TypeState>(
           ],
           DECIMAL_POINT_CLICKED: {
             description: ".",
-            actions: ['assignOperand1Zero', 'assignOperand1DecimalPoint'],
+            actions: ['assignOperand1NegativeZero', 'assignOperand1DecimalPoint'],
             target: "Operand1Entered.AfterDecimalPoint",
           },
           CLEAR_BUTTON_CLICKED: {
@@ -226,7 +226,7 @@ createMachine<MachineContext, MachineEvents, TypeState>(
           ],
           DECIMAL_POINT_CLICKED: {
             description: ".",
-            actions: ['assignOperand2Zero', 'assignOperand2DecimalPoint'],
+            actions: ['assignOperand2NegativeZero', 'assignOperand2DecimalPoint'],
             target: "Operand2Entered.AfterDecimalPoint",
           },
           CLEAR_BUTTON_CLICKED: {
@@ -383,6 +383,9 @@ createMachine<MachineContext, MachineEvents, TypeState>(
       assignOperand1Zero: assign<MachineContext, DecimalPointClickedEvent>({
         operand1: (_) => '0',
       }),
+      assignOperand1NegativeZero: assign<MachineContext>({
+        operand1: (_) => '-0',
+      }),
       assignOperand2: assign<MachineContext, DigitClickedEvent>({
         operand2: (_, { data }) => `${data}`,
       }),
@@ -397,6 +400,9 @@ createMachine<MachineContext, MachineEvents, TypeState>(
       }),
       assignOperand2Zero: assign<MachineContext, DecimalPointClickedEvent>({
         operand2: (_) => '0',
+      }),
+      assignOperand2NegativeZero: assign<MachineContext>({
+        operand2: (_) => '-0',
       }),
       assignOperator: assign<MachineContext, OperatorClickedEvent>({
         operator: (_, { data }) => data,
