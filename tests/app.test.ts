@@ -9,9 +9,6 @@ import {
   type MachineEvents,
   type DigitClickedEvent,
   type OperatorClickedEvent,
-  type ClearButtonClickedEvent,
-  type EqualSignClickedEvent,
-  type ResetClickedEvent,
   type TypeState,
 } from "../src/machine/type";
 
@@ -108,35 +105,9 @@ const ArithmeticOperator = {
   DIVIDE: 'DIVIDE',
 } as const;
 
-const everyGuard =
-  <T extends EventObject>(guards: GuardFunc<T>[]) =>
-    (...args: Parameters<GuardFunc<T>>) =>
-      guards.every(guard => guard(...args));
-
-const isCurrentOperandZero = (_: MachineContext, { data }: DigitClickedEvent) => data === 0;
-
-const isTheMinusOperator = (_: MachineContext, { data }: OperatorClickedEvent) => data === ArithmeticOperator.MINUS;
-
-const isDivideByZero = ({ operator, operand2 }: MachineContext) => operator! === ArithmeticOperator.DIVIDE && parseFloat(operand2!) === 0;
-
 const INITIAL_CONTEXT: MachineContext = {};
 
-const assignOperator = assign<MachineContext, OperatorClickedEvent>({
-  operator: (_, { data }) => data,
-});
-
-export const assignOperand2 = assign<MachineContext, DigitClickedEvent>({
-  operand2: (_, { data }) => `${data}`,
-});
-
-export const assignOperand2Zero = assign<MachineContext>({
-  operand2: '0',
-});
-
-const assignResetContext = assign<MachineContext, ClearButtonClickedEvent | EqualSignClickedEvent | ResetClickedEvent>((_) => INITIAL_CONTEXT);
-
-const machineWithoutTests = createMachine<MachineContext, MachineEvents, TypeState>(
-  {
+const machineWithoutTests = createMachine<MachineContext, MachineEvents, TypeState>(  {
     predictableActionArguments: true,
     context: INITIAL_CONTEXT,
     initial: "Cluster",
@@ -195,13 +166,22 @@ const machineWithoutTests = createMachine<MachineContext, MachineEvents, TypeSta
           },
         },
       },
+
       NegativeNumber1: {
         on: {
-          DIGIT_CLICKED: {
-            description: "0-9",
-            actions: ['assignOperand1Negative'],
-            target: "Operand1Entered.BeforeDecimalPoint",
-          },
+          DIGIT_CLICKED: [
+            {
+              description: "0",
+              cond: 'isCurrentOperandZero',
+              actions: ['assignOperand1Zero'],
+              target: "Operand1Entered.Zero",
+            },
+            {
+              description: "1-9",
+              actions: ['assignOperand1Negative'],
+              target: "Operand1Entered.BeforeDecimalPoint",
+            },
+          ],
           DECIMAL_POINT_CLICKED: {
             description: ".",
             actions: ['assignOperand1Zero', 'assignOperand1DecimalPoint'],
@@ -209,11 +189,11 @@ const machineWithoutTests = createMachine<MachineContext, MachineEvents, TypeSta
           },
           CLEAR_BUTTON_CLICKED: {
             description: "CE",
-            actions: ['assignResetOperand1'],
-            target: "Cluster",
+            target: "Cluster.Start",
           },
         },
       },
+
       Operand1Entered: {
         states: {
           Zero: {
@@ -268,14 +248,15 @@ const machineWithoutTests = createMachine<MachineContext, MachineEvents, TypeSta
           PERCENT_SIGN_CLICKED: {
             description: "%",
             actions: ['assignOperand1DividedBy100'],
+            target: 'Cluster.Result',
           },
           CLEAR_BUTTON_CLICKED: {
             description: "CE",
-            actions: ['assignResetOperand1'],
             target: "Cluster",
           },
         },
       },
+
       OperatorEntered: {
         on: {
           DIGIT_CLICKED: [
@@ -310,6 +291,7 @@ const machineWithoutTests = createMachine<MachineContext, MachineEvents, TypeSta
           ],
         },
       },
+
       NegativeNumber2: {
         on: {
           DIGIT_CLICKED: [
@@ -332,11 +314,11 @@ const machineWithoutTests = createMachine<MachineContext, MachineEvents, TypeSta
           },
           CLEAR_BUTTON_CLICKED: {
             description: "CE",
-            actions: ['assignResetOperand2'],
             target: "OperatorEntered",
           },
         },
       },
+
       Operand2Entered: {
         states: {
           History: {
@@ -408,34 +390,47 @@ const machineWithoutTests = createMachine<MachineContext, MachineEvents, TypeSta
           },
         },
       },
+
       // TODO: modal
       AlertError: {
         on: {
           OK_BUTTON_CLICKED: {
             description: "OK",
             target: "Operand2Entered.History",
-          },
+          }
         },
-      },
+      }
     },
     on: {
       RESET_CLICKED: {
         description: "C",
-        actions: ['assignResetOperand1', 'assignResetOperand2', 'assignResetOperator'],
         target: "Cluster",
       },
     },
   },
   {
     guards: {
-      isCurrentOperandZero,
-      isTheMinusOperator,
-      isDivideByZero,
+      isCurrentOperandZero: (_, { data }: DigitClickedEvent) => data === 0,
+      isTheMinusOperator: (_, { data }: OperatorClickedEvent) => data === ArithmeticOperator.MINUS,
+      isDivideByZero: (context: MachineContext) => {
+        const { operator, operand2 } = context;
+        return operator! === ArithmeticOperator.DIVIDE && parseFloat(operand2!) === 0;
+      },
     },
     actions: {
-      assignOperator,
-      assignOperand2,
-      assignResetContext,
+      assignOperator: assign<MachineContext, OperatorClickedEvent>({
+        operator: (_, { data }) => data,
+      }),
+      assignOperand2: assign<MachineContext, DigitClickedEvent>({
+        operand2: (_, { data }) => `${data}`,
+      }),
+      assignOperand2Zero: assign({
+        operand2: (_) => '0',
+      }),
+      assignResetContext: assign((_) => INITIAL_CONTEXT),
+      assignResetOperator: assign({
+      operator: (_) => INITIAL_CONTEXT.operator,
+    })
     },
   }
 );
@@ -469,7 +464,7 @@ const machineWithTests = addTestsToMachine(machineWithoutTests, {
     await expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)? [+−×÷] -$/);
   },
   ['Operand2Entered.Zero']: async (page) => {
-    await expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)? [+−×÷] 0$/);
+    await expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)? [+−×÷] -?0$/);
   },
   ['Operand2Entered.BeforeDecimalPoint']: async (page) => {
     await expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)? [+−×÷] -?\d+$/);
