@@ -473,7 +473,7 @@ const machineWithTests = addTestsToMachine(machineWithoutTests, {
     await expect(page.locator('data-test=calc-input')).toHaveValue(/^-?\d+(\.\d+)? [+−×÷] -?\d+\.?\d*$/);
   },
   AlertError: async (page) => {
-    await expect(page.locator('data-test=error-zero-division')).toContainText('Ошибка: Деление на ноль');
+    await expect(page.locator('data-test=error-zero-division')).toContainText('Error: Division by Zero');
     await expect(page.locator('data-test=commandOK')).toBeVisible();
     await expect(page.locator('data-test=commandOK')).toContainText('OK');
   },

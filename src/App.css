@@ -1,39 +1,42 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
 }
 
 .container {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(5, 1fr);
-  grid-column-gap: 0;
-  grid-row-gap: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    grid-column-gap: 0;
+    grid-row-gap: 0;
 }
 
 .calc-input {
-  font-size: 30px;
+    font-size: 30px;
 }
 
 .commands-section {
-  grid-area: 1 / 1 / 2 / 5;
-  display: grid;
-  /*grid-template-areas: "a a a a";*/
-  grid-template-columns: repeat(4, 1fr);
+    grid-area: 1 / 1 / 2 / 5;
+    display: grid;
+    /*grid-template-areas: "a a a a";*/
+    grid-template-columns: repeat(4, 1fr);
 }
 
 .digits-section {
-  grid-area: 2 / 1 / 6 / 4;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
+    grid-area: 2 / 1 / 6 / 4;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
 }
 
 .operators-section {
-  grid-area: 2 / 4 / 6 / 5;
-  display: grid;
-  grid-template-rows: repeat(3, 1fr);
+    grid-area: 2 / 4 / 6 / 5;
+    display: grid;
+    grid-template-rows: repeat(3, 1fr);
 }
 
+.error-message {
+    color: lightcoral;
+}
