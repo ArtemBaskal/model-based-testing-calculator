@@ -1,16 +1,17 @@
 import { test, expect } from '@playwright/test';
 import { createModel } from '@xstate/test';
-import { assign, createMachine, type AnyStateMachine, type EventObject } from "xstate";
+import { assign, createMachine, type AnyStateMachine } from "xstate";
 import { type Page } from "playwright-core";
 import { type TestPlan } from "@xstate/test/es/types";
 import {
-  type GuardFunc,
   type MachineContext,
   type MachineEvents,
   type DigitClickedEvent,
   type OperatorClickedEvent,
   type TypeState,
 } from "../src/machine/type";
+import * as fc from 'fast-check';
+import { type ValueOf } from "../src/types";
 
 /**
  * Adds state.meta.test to machines by their state id -

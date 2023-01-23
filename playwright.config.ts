@@ -1,6 +1,6 @@
 import { PlaywrightTestConfig } from '@playwright/test';
 
-const { HEADLESS, PLAYWRIGHT_SLOW_MO } = process.env;
+const { HEADLESS, PLAYWRIGHT_SLOW_MO, TEST_ACTIONS } = process.env;
 
 export const config: PlaywrightTestConfig = {
   use: {
@@ -12,6 +12,7 @@ export const config: PlaywrightTestConfig = {
     },
   },
   testDir: './tests',
+  // testMatch: TEST_ACTIONS ? 'actions.test.ts' : '*.test.ts',
   testMatch: '*.test.ts',
   timeout: 150000,
   workers: PLAYWRIGHT_SLOW_MO ? 1 : 4,

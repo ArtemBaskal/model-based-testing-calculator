@@ -101,6 +101,7 @@ type Modify<T, R extends { [P in keyof T]?: any }> = Omit<T, keyof R> & R;
 
 type Zero = '0';
 
+// FIXME: type to remove properties in object at all, instead of using never
 export type TypeState =
   {
     value: { Cluster: 'Start' }
