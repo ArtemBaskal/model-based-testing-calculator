@@ -101,7 +101,6 @@ type Modify<T, R extends { [P in keyof T]?: any }> = Omit<T, keyof R> & R;
 
 type Zero = '0';
 
-// FIXME: type to remove properties in object at all, instead of using never
 export type TypeState =
   {
     value: { Cluster: 'Start' }
@@ -142,3 +141,44 @@ export type TypeState =
     context: Modify<MachineContextStateNever, Pick<MachineContextStatePartial, 'operand1'>>,
   }
 
+/*
+export type TypeStateStrict =
+  {
+    value: { Cluster: 'Start' }
+      | 'NegativeNumber1',
+    context: {},
+  } |
+  {
+    value: 'Operand1Entered'
+      | { Operand1Entered: 'AfterDecimalPoint' }
+      | { Operand1Entered: 'BeforeDecimalPoint' }
+      | { Cluster: 'Result' },
+    context: { operand1: string },
+  } |
+  {
+    value: { Operand1Entered: 'Zero' },
+    context: { operand1: Zero },
+  } |
+  {
+    value: 'OperatorEntered' | 'NegativeNumber2',
+    context: { operand1: string, operator: ArithmeticOperator },
+  } |
+  {
+    value: 'Operand2Entered'
+      | { Operand2Entered: 'AfterDecimalPoint' }
+      | { Operand2Entered: 'BeforeDecimalPoint' }
+    context: { operand1: string, operator: ArithmeticOperator, operand2: string },
+  } |
+  {
+    value: { Operand2Entered: 'Zero' },
+    context: { operand1: string, operator: ArithmeticOperator, operand2: Zero },
+  } |
+  {
+    value: 'AlertError',
+    context: { operand1: string, operator: 'DIVIDE', operand2: Zero },
+  } |
+  {
+    value: 'Cluster',
+    context: { operand1?: string },
+  }
+*/
