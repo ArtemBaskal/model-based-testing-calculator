@@ -7,6 +7,8 @@ import {
   fastForwardToOperatorDivide, fastForwardToReset, fastForwardToResult,
   fastForwardZeroDivision
 } from "./fastForwardEvents";
+import { Steps } from "./Steps";
+import { States } from "./States";
 
 const meta: Meta<typeof App> = {
   title: 'Calc',
@@ -45,4 +47,11 @@ export const AfterReset: Story = {
 
 export const ResultExample: Story = {
   render: () => <App fastForwardEvents={fastForwardToResult} />,
+};
+export const AlertErrorSteps: Story = {
+  render: () => <Steps />,
+};
+
+export const AppStates: Story = {
+  render: () => <States />,
 };

@@ -1,19 +1,21 @@
 import { useCallback, useEffect } from 'react';
-import { useMachine } from '@xstate/react';
-import { machine } from './machine/machine';
-import { type Digit, type MachineEvents } from './machine/type';
+import { useActor } from '@xstate/react';
+import { type Digit, type MachineContext, type MachineEvents, type TypeState } from './machine/type';
 import { MachineEventTypes } from './machine/events';
 import { type ValueOf } from './types';
 import { ArithmeticOperatorMap, COMMANDS, CommandsMap, DIGITS, OPERATORS } from "./common";
 import { getKeyboardInputHandler } from './helpers';
+import { type Interpreter } from "xstate";
 import './App.css'
 
 type AppProps = {
   fastForwardEvents?: MachineEvents[],
+  service: Interpreter<MachineContext, any, MachineEvents, TypeState>,
 };
 
-export function App({ fastForwardEvents }: AppProps) {
-  const [state, send] = useMachine(machine, { devTools: true });
+//  TODO: extract
+export function AppActor({ fastForwardEvents, service }: AppProps) {
+  const [state, send] = useActor(service);
 
   useEffect(() => {
     const keyboardInputHandler = getKeyboardInputHandler(send);
@@ -80,7 +82,7 @@ export function App({ fastForwardEvents }: AppProps) {
     <div className="App">
       {state.matches('AlertError') && <div>
         {renderCommand(CommandsMap.OK)}
-        <div data-test="error-zero-division" className="error-message">Error: Division by Zero</div>
+          <div data-test="error-zero-division" className="error-message">Error: Division by Zero</div>
       </div>}
       <input
         type="text"
