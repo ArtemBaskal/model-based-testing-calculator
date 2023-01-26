@@ -16,9 +16,6 @@ import {
 } from "./type";
 import { everyGuard } from "./guards";
 
-// TODO: http archive, events archive
-// TODO: autogen of user docs
-// TODO: train how to filter tests
 // TODO: example with one state - redux style
 // TODO: add service invocation for result calculation
 // TODO: process mining

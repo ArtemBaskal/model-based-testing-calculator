@@ -12,8 +12,7 @@ export const config: PlaywrightTestConfig = {
     },
   },
   testDir: './tests',
-  // testMatch: TEST_ACTIONS ? 'actions.test.ts' : '*.test.ts',
-  testMatch: '*.test.ts',
+  testMatch: TEST_ACTIONS ? 'actions.test.ts' : '*.test.ts',
   timeout: 150000,
   workers: PLAYWRIGHT_SLOW_MO ? 1 : 4,
 };
