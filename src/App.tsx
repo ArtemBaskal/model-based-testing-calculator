@@ -6,11 +6,29 @@ import { MachineEventTypes } from './machine/events';
 import { type ValueOf } from './types';
 import { ArithmeticOperatorMap, COMMANDS, CommandsMap, DIGITS, OPERATORS } from "./common";
 import { getKeyboardInputHandler } from './helpers';
+// import { type EventData, type SingleOrArray, type Event as EventXstate } from "xstate";
 import './App.css'
 
 type AppProps = {
   fastForwardEvents?: MachineEvents[],
 };
+
+// Script for event log generation
+// const id = Math.ceil(Math.random() * 10000);
+// const eventLog = [];
+// window.eventLog = eventLog;
+// copy(eventLog.join('\n'));
+
+/*
+const send = (event: EventXstate<MachineEvents> | SingleOrArray<EventXstate<MachineEvents>>, payload?: EventData | undefined) => {
+  const stateName = typeof state.value === "string" ? state.value : Object.entries(state.value).reduce((acc, [k, v]) => `${k}.${v}`, '');
+  const log = `${id},${stateName},${(new Date()).toISOString().slice(0, -1).replace("T", " ")},${event.type}`;
+  console.log(log);
+  eventLog.push(log);
+  sendToMachine(event,  payload);
+}
+*/
+
 
 export function App({ fastForwardEvents }: AppProps) {
   const [state, send] = useMachine(machine, { devTools: true });
