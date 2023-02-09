@@ -1,0 +1,93 @@
+@startuml
+left to right direction
+state "PlantUML_Config" as PlantUML_Config {
+  [*] --> PlantUML_Config.Cluster
+
+  PlantUML_Config --> PlantUML_Config.Cluster : RESET_CLICKED
+  state "Cluster" as PlantUML_Config.Cluster {
+    [*] --> PlantUML_Config.Cluster.Start
+
+    PlantUML_Config.Cluster --> Zero1 : DIGIT_CLICKED\l/
+    PlantUML_Config.Cluster --> BeforeDecimalPoint1 : DIGIT_CLICKED\l/
+    PlantUML_Config.Cluster --> AfterDecimalPoint1 : DECIMAL_POINT_CLICKED\l/,
+    state "Start" as PlantUML_Config.Cluster.Start {
+      PlantUML_Config.Cluster.Start --> NegativeNumber1Id : OPERATOR_CLICKED
+    }
+
+    state "Result" as PlantUML_Config.Cluster.Result {
+      PlantUML_Config.Cluster.Result --> OperatorEnteredId : OPERATOR_CLICKED\l/
+      PlantUML_Config.Cluster.Result --> PlantUML_Config.Cluster.Result : PERCENT_SIGN_CLICKED\l/
+    }
+  }
+
+  state "NegativeNumber1" as NegativeNumber1Id {
+    NegativeNumber1Id --> Zero1 : DIGIT_CLICKED\l/
+    NegativeNumber1Id --> BeforeDecimalPoint1 : DIGIT_CLICKED\l/
+    NegativeNumber1Id --> AfterDecimalPoint1 : DECIMAL_POINT_CLICKED\l/,
+    NegativeNumber1Id --> PlantUML_Config.Cluster.Start : CLEAR_BUTTON_CLICKED
+  }
+
+  state "Operand1Entered" as PlantUML_Config.Operand1Entered {
+    PlantUML_Config.Operand1Entered --> OperatorEnteredId : OPERATOR_CLICKED\l/
+    PlantUML_Config.Operand1Entered --> PlantUML_Config.Cluster.Result : PERCENT_SIGN_CLICKED\l/
+    PlantUML_Config.Operand1Entered --> PlantUML_Config.Cluster : CLEAR_BUTTON_CLICKED
+    state "Zero" as Zero1 {
+      Zero1 --> Zero1 : DIGIT_CLICKED
+      Zero1 --> BeforeDecimalPoint1 : DIGIT_CLICKED\l/
+      Zero1 --> AfterDecimalPoint1 : DECIMAL_POINT_CLICKED\l/
+    }
+
+    state "BeforeDecimalPoint" as BeforeDecimalPoint1 {
+      BeforeDecimalPoint1 --> BeforeDecimalPoint1 : DIGIT_CLICKED\l/
+      BeforeDecimalPoint1 --> BeforeDecimalPoint1 : DECIMAL_POINT_CLICKED\l/
+    }
+
+    state "AfterDecimalPoint" as AfterDecimalPoint1 {
+      AfterDecimalPoint1 --> AfterDecimalPoint1 : DIGIT_CLICKED\l/
+    }
+  }
+
+  state "OperatorEntered" as OperatorEnteredId {
+    OperatorEnteredId --> Zero2 : DIGIT_CLICKED\l/
+    OperatorEnteredId --> BeforeDecimalPoint2 : DIGIT_CLICKED\l/
+    OperatorEnteredId --> AfterDecimalPoint2 : DECIMAL_POINT_CLICKED\l/,
+    OperatorEnteredId --> PlantUML_Config.NegativeNumber2 : OPERATOR_CLICKED
+    OperatorEnteredId --> OperatorEnteredId : OPERATOR_CLICKED\l/
+  }
+
+  state "NegativeNumber2" as PlantUML_Config.NegativeNumber2 {
+    PlantUML_Config.NegativeNumber2 --> Zero2 : DIGIT_CLICKED\l/
+    PlantUML_Config.NegativeNumber2 --> BeforeDecimalPoint2 : DIGIT_CLICKED\l/
+    PlantUML_Config.NegativeNumber2 --> AfterDecimalPoint2 : DECIMAL_POINT_CLICKED\l/,
+    PlantUML_Config.NegativeNumber2 --> OperatorEnteredId : CLEAR_BUTTON_CLICKED
+  }
+
+  state "Operand2Entered" as PlantUML_Config.Operand2Entered {
+    PlantUML_Config.Operand2Entered --> PlantUML_Config.AlertError : EQUAL_SIGN_CLICKED
+    PlantUML_Config.Operand2Entered --> PlantUML_Config.Cluster.Result : EQUAL_SIGN_CLICKED\l/,,
+    PlantUML_Config.Operand2Entered --> OperatorEnteredId : OPERATOR_CLICKED\l/,
+    PlantUML_Config.Operand2Entered --> OperatorEnteredId : CLEAR_BUTTON_CLICKED\l/
+    state "History" as PlantUML_Config.Operand2Entered.History {
+    }
+
+    state "Zero" as Zero2 {
+      Zero2 --> Zero2 : DIGIT_CLICKED
+      Zero2 --> BeforeDecimalPoint2 : DIGIT_CLICKED\l/
+      Zero2 --> AfterDecimalPoint2 : DECIMAL_POINT_CLICKED\l/
+    }
+
+    state "BeforeDecimalPoint" as BeforeDecimalPoint2 {
+      BeforeDecimalPoint2 --> BeforeDecimalPoint2 : DIGIT_CLICKED\l/
+      BeforeDecimalPoint2 --> AfterDecimalPoint2 : DECIMAL_POINT_CLICKED\l/
+    }
+
+    state "AfterDecimalPoint" as AfterDecimalPoint2 {
+      AfterDecimalPoint2 --> AfterDecimalPoint2 : DIGIT_CLICKED\l/
+    }
+  }
+
+  state "AlertError" as PlantUML_Config.AlertError {
+    PlantUML_Config.AlertError --> PlantUML_Config.Operand2Entered.History : OK_BUTTON_CLICKED
+  }
+}
+@enduml

@@ -1,0 +1,328 @@
+{
+  "key": "PlantUML_Config",
+  "initial": "Cluster",
+  "states": {
+    "Cluster": {
+      "initial": "Start",
+      "states": {
+        "Start": {
+          "on": {
+            "OPERATOR_CLICKED": {
+              "cond": "isTheMinusOperator",
+              "target": "#NegativeNumber1Id"
+            }
+          }
+        },
+        "Result": {
+          "on": {
+            "OPERATOR_CLICKED": {
+              "actions": [
+                "assignOperator"
+              ],
+              "target": "#OperatorEnteredId"
+            },
+            "PERCENT_SIGN_CLICKED": {
+              "actions": [
+                "assignOperand1DividedBy100"
+              ],
+              "target": "."
+            }
+          }
+        }
+      },
+      "on": {
+        "DIGIT_CLICKED": [
+          {
+            "cond": "isCurrentOperandZero",
+            "actions": [
+              "assignOperand1Zero"
+            ],
+            "target": "Operand1Entered.Zero"
+          },
+          {
+            "actions": [
+              "assignOperand1"
+            ],
+            "target": "Operand1Entered.BeforeDecimalPoint"
+          }
+        ],
+        "DECIMAL_POINT_CLICKED": {
+          "actions": [
+            "assignOperand1Zero",
+            "assignOperand1DecimalPoint"
+          ],
+          "target": "Operand1Entered.AfterDecimalPoint"
+        }
+      }
+    },
+    "NegativeNumber1": {
+      "id": "NegativeNumber1Id",
+      "on": {
+        "DIGIT_CLICKED": [
+          {
+            "cond": "isCurrentOperandZero",
+            "actions": [
+              "assignOperand1Negative"
+            ],
+            "target": "#Zero1"
+          },
+          {
+            "actions": [
+              "assignOperand1Negative"
+            ],
+            "target": "#BeforeDecimalPoint1"
+          }
+        ],
+        "DECIMAL_POINT_CLICKED": {
+          "actions": [
+            "assignOperand1NegativeZero",
+            "assignOperand1DecimalPoint"
+          ],
+          "target": "#AfterDecimalPoint1"
+        },
+        "CLEAR_BUTTON_CLICKED": {
+          "target": "Cluster.Start"
+        }
+      }
+    },
+    "Operand1Entered": {
+      "states": {
+        "Zero": {
+          "id": "Zero1",
+          "on": {
+            "DIGIT_CLICKED": [
+              {
+                "cond": "isCurrentOperandZero",
+                "target": "."
+              },
+              {
+                "actions": [
+                  "assignOperand1"
+                ],
+                "target": "BeforeDecimalPoint"
+              }
+            ],
+            "DECIMAL_POINT_CLICKED": {
+              "actions": [
+                "assignOperand1DecimalPoint"
+              ],
+              "target": "AfterDecimalPoint"
+            }
+          }
+        },
+        "BeforeDecimalPoint": {
+          "id": "BeforeDecimalPoint1",
+          "on": {
+            "DIGIT_CLICKED": {
+              "actions": [
+                "assignAddDigitToOperand1"
+              ],
+              "target": "BeforeDecimalPoint"
+            },
+            "DECIMAL_POINT_CLICKED": {
+              "actions": [
+                "assignOperand1DecimalPoint"
+              ],
+              "target": "."
+            }
+          }
+        },
+        "AfterDecimalPoint": {
+          "id": "AfterDecimalPoint1",
+          "on": {
+            "DIGIT_CLICKED": {
+              "actions": [
+                "assignAddDigitToOperand1"
+              ],
+              "target": "."
+            }
+          }
+        }
+      },
+      "on": {
+        "OPERATOR_CLICKED": {
+          "actions": [
+            "assignOperator"
+          ],
+          "target": "OperatorEntered"
+        },
+        "PERCENT_SIGN_CLICKED": {
+          "actions": [
+            "assignOperand1DividedBy100"
+          ],
+          "target": "Cluster.Result"
+        },
+        "CLEAR_BUTTON_CLICKED": {
+          "target": "Cluster"
+        }
+      }
+    },
+    "OperatorEntered": {
+      "id": "OperatorEnteredId",
+      "on": {
+        "DIGIT_CLICKED": [
+          {
+            "cond": "isCurrentOperandZero",
+            "actions": [
+              "assignOperand2Zero"
+            ],
+            "target": "Operand2Entered.Zero"
+          },
+          {
+            "actions": [
+              "assignOperand2"
+            ],
+            "target": "Operand2Entered.BeforeDecimalPoint"
+          }
+        ],
+        "DECIMAL_POINT_CLICKED": {
+          "actions": [
+            "assignOperand2Zero",
+            "assignOperand2DecimalPoint"
+          ],
+          "target": "Operand2Entered.AfterDecimalPoint"
+        },
+        "OPERATOR_CLICKED": [
+          {
+            "cond": "isTheMinusOperator",
+            "target": "NegativeNumber2"
+          },
+          {
+            "actions": [
+              "assignOperator"
+            ],
+            "target": "OperatorEntered"
+          }
+        ]
+      }
+    },
+    "NegativeNumber2": {
+      "on": {
+        "DIGIT_CLICKED": [
+          {
+            "cond": "isCurrentOperandZero",
+            "actions": [
+              "assignOperand2Negative"
+            ],
+            "target": "#Zero2"
+          },
+          {
+            "actions": [
+              "assignOperand2Negative"
+            ],
+            "target": "#BeforeDecimalPoint2"
+          }
+        ],
+        "DECIMAL_POINT_CLICKED": {
+          "actions": [
+            "assignOperand2NegativeZero",
+            "assignOperand2DecimalPoint"
+          ],
+          "target": "#AfterDecimalPoint2"
+        },
+        "CLEAR_BUTTON_CLICKED": {
+          "target": "OperatorEntered"
+        }
+      }
+    },
+    "Operand2Entered": {
+      "states": {
+        "History": {
+          "type": "history"
+        },
+        "Zero": {
+          "id": "Zero2",
+          "on": {
+            "DIGIT_CLICKED": [
+              {
+                "cond": "isCurrentOperandZero",
+                "target": "."
+              },
+              {
+                "actions": [
+                  "assignOperand2"
+                ],
+                "target": "BeforeDecimalPoint"
+              }
+            ],
+            "DECIMAL_POINT_CLICKED": {
+              "actions": [
+                "assignOperand2DecimalPoint"
+              ],
+              "target": "AfterDecimalPoint"
+            }
+          }
+        },
+        "BeforeDecimalPoint": {
+          "id": "BeforeDecimalPoint2",
+          "on": {
+            "DIGIT_CLICKED": {
+              "actions": [
+                "assignAddDigitToOperand2"
+              ],
+              "target": "."
+            },
+            "DECIMAL_POINT_CLICKED": {
+              "actions": [
+                "assignOperand2DecimalPoint"
+              ],
+              "target": "AfterDecimalPoint"
+            }
+          }
+        },
+        "AfterDecimalPoint": {
+          "id": "AfterDecimalPoint2",
+          "on": {
+            "DIGIT_CLICKED": {
+              "actions": [
+                "assignAddDigitToOperand2"
+              ],
+              "target": "."
+            }
+          }
+        }
+      },
+      "on": {
+        "EQUAL_SIGN_CLICKED": [
+          {
+            "cond": "isDivideByZero",
+            "target": "AlertError"
+          },
+          {
+            "actions": [
+              "assignOperand1Calculated",
+              "assignResetOperand2",
+              "assignResetOperator"
+            ],
+            "target": "Cluster.Result"
+          }
+        ],
+        "OPERATOR_CLICKED": {
+          "actions": [
+            "assignResetOperand2",
+            "assignOperator"
+          ],
+          "target": "OperatorEntered"
+        },
+        "CLEAR_BUTTON_CLICKED": {
+          "actions": [
+            "assignResetOperand2"
+          ],
+          "target": "OperatorEntered"
+        }
+      }
+    },
+    "AlertError": {
+      "on": {
+        "OK_BUTTON_CLICKED": {
+          "target": "Operand2Entered.History"
+        }
+      }
+    }
+  },
+  "on": {
+    "RESET_CLICKED": {
+      "target": "Cluster"
+    }
+  }
+}
