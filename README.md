@@ -1,4 +1,14 @@
 # Model Based Testing Calculator
+## Feedback
+> It's seriously impressive
+
+[Feedback](https://discord.com/channels/795785288994652170/799416890841628713/1117257811550802040) on the project from [David Khourshid](https://github.com/davidkpiano), creator of [XState](https://xstate.js.org/). Thanks David!
+<img width="849" alt="image" src="https://github.com/ArtemBaskal/model-based-testing-calculator/assets/45331104/c49e9cc7-8902-4400-973e-63b3f386cede">
+
+## Inspiration Book
+![image](https://github.com/ArtemBaskal/model-based-testing-calculator/assets/45331104/808afd89-afac-4b67-bc44-46192072e4a2)
+
+📖 [Constructing the User Interface with Statecharts by Ian Horrocks](https://www.amazon.com/Constructing-User-Interface-Statecharts-Horrocks/dp/0201342782) on Amazon
 
 ## Interface of the App
 <img width="335" alt="image" src="https://user-images.githubusercontent.com/45331104/211210047-2dbad7d7-935b-4805-a2af-f5ca790685f8.png">
