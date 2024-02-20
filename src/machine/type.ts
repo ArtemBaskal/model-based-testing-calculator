@@ -1,4 +1,3 @@
-import { type ConditionPredicate, type EventObject } from 'xstate';
 import { type ValueOf } from '../types';
 import { MachineEventTypes } from './events';
 
@@ -54,32 +53,26 @@ export type OperatorClickedEvent = {
 
 export type DecimalPointClickedEvent = {
   type: MachineEventTypes['DECIMAL_POINT_CLICKED'];
-  data?: never;
 };
 
 export type ClearButtonClickedEvent = {
   type: MachineEventTypes['CLEAR_BUTTON_CLICKED'];
-  data?: never;
 };
 
 export type EqualSignClickedEvent = {
   type: MachineEventTypes['EQUAL_SIGN_CLICKED'];
-  data?: never;
 };
 
 export type OkButtonClickedEvent = {
   type: MachineEventTypes['OK_BUTTON_CLICKED'];
-  data?: never;
 };
 
 export type ResetClickedEvent = {
   type: MachineEventTypes['RESET_CLICKED'];
-  data?: never;
 };
 
 export type ParenthesesClickedEvent = {
   type: MachineEventTypes['PARENTHESES_CLICKED'];
-  data?: never;
 };
 
 export type MachineEvents =
@@ -94,8 +87,6 @@ export type MachineEvents =
   | ParenthesesClickedEvent;
 
 export const INITIAL_CONTEXT: MachineContext = {};
-
-export type GuardFunc<Event extends EventObject = MachineEvents> = ConditionPredicate<MachineContext, Event>;
 
 type Modify<T, R extends { [P in keyof T]?: any }> = Omit<T, keyof R> & R;
 

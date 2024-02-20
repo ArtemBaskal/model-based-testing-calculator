@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { createModel } from '@xstate/test';
-import { assign, createMachine, type AnyStateMachine } from "xstate";
+import { assign, createMachine, type AnyStateMachine } from "xstate4";
 import { type Page } from "playwright-core";
 import { type TestPlan } from "@xstate/test/es/types";
 import {

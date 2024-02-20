@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { useMachine } from '@xstate/react';
+import { createBrowserInspector } from '@statelyai/inspect';
 import { machine } from './machine/machine';
 import { type Digit, type MachineEvents } from './machine/type';
 import { MachineEventTypes } from './machine/events';
@@ -29,9 +30,9 @@ const send = (event: EventXstate<MachineEvents> | SingleOrArray<EventXstate<Mach
 }
 */
 
-
+const { inspect } = createBrowserInspector();
 export function App({ fastForwardEvents }: AppProps) {
-  const [state, send] = useMachine(machine, { devTools: true });
+  const [state, send] = useMachine(machine, { inspect });
 
   useEffect(() => {
     const keyboardInputHandler = getKeyboardInputHandler(send);
@@ -64,10 +65,12 @@ export function App({ fastForwardEvents }: AppProps) {
     {digit}
   </button>, [state]);
 
-  const renderOperator = useCallback(({
-                                        operator,
-                                        displaySign
-                                      }: ValueOf<typeof ArithmeticOperatorMap>) => <button
+  const renderOperator = useCallback((
+    {
+      operator,
+      displaySign
+    }: ValueOf<typeof ArithmeticOperatorMap>
+  ) => <button
     key={operator}
     type="button"
     onClick={() => {
@@ -88,7 +91,7 @@ export function App({ fastForwardEvents }: AppProps) {
       onClick={() => {
         send({ type: eventType })
       }}
-      disabled={!state.can(eventType)}
+      disabled={!state.can({ type: eventType })}
       data-test={`command${dataTest}`}
     >
       {displaySign}
@@ -118,7 +121,7 @@ export function App({ fastForwardEvents }: AppProps) {
             || state.matches('NegativeNumber2')
             || state.matches('Operand2Entered')
             || state.matches('AlertError')
-              ? ` ${ArithmeticOperatorMap[state.context.operator].displaySign} `
+              ? ` ${ArithmeticOperatorMap[state.context.operator!].displaySign} `
               : ''
           }${
             state.matches('NegativeNumber2')

@@ -1,16 +1,18 @@
 <script lang="ts">
 import { defineComponent, onMounted, onUnmounted } from 'vue';
 import { useMachine } from '@xstate/vue';
+import { createBrowserInspector } from "@statelyai/inspect";
 import { machine } from './machine/machine';
 import { MachineEventTypes } from './machine/events';
 import { ArithmeticOperatorMap, COMMANDS, Commands, CommandsMap, DIGITS, OPERATORS } from './common';
 import { getKeyboardInputHandler } from './helpers';
 import './App.css';
 
+const { inspect } = createBrowserInspector();
 export default defineComponent({
   name: 'App',
   setup() {
-    const { state, send } = useMachine(machine, { devTools: true });
+    const { snapshot, send } = useMachine(machine, { inspect });
 
     const keyboardInputHandler = getKeyboardInputHandler(send);
 
@@ -22,7 +24,7 @@ export default defineComponent({
     });
 
     return {
-      state,
+      snapshot,
       send,
       ArithmeticOperatorMap,
       MachineEventTypes,
@@ -38,12 +40,12 @@ export default defineComponent({
 
 <template>
   <div class="App">
-    <div v-if="state.matches('AlertError')">
+    <div v-if="snapshot.matches('AlertError')">
       <button
           type="button"
           data-test="commandOK"
           @click="send({ type: MachineEventTypes.OK_BUTTON_CLICKED })"
-          :disabled="!state.can(MachineEventTypes.OK_BUTTON_CLICKED)"
+          :disabled="!snapshot.can({ type: MachineEventTypes.OK_BUTTON_CLICKED })"
       >
         OK
       </button>
@@ -51,29 +53,29 @@ export default defineComponent({
     </div>
     <input type="text" readonly class="calc-input" data-test="calc-input" :value="
           `${
-            state.matches('NegativeNumber1')
+            snapshot.matches('NegativeNumber1')
               ? '-'
               : ''
           }${
-            state.matches({ Cluster: 'Start' })
-            || state.matches('NegativeNumber1')
+            snapshot.matches({ Cluster: 'Start' })
+            || snapshot.matches('NegativeNumber1')
               ? ''
-              : state.context.operand1
+              : snapshot.context.operand1
           }${
-            state.matches('OperatorEntered')
-            || state.matches('NegativeNumber2')
-            || state.matches('Operand2Entered')
-            || state.matches('AlertError')
-              ? ` ${ArithmeticOperatorMap[state.context.operator].displaySign} `
+            snapshot.matches('OperatorEntered')
+            || snapshot.matches('NegativeNumber2')
+            || snapshot.matches('Operand2Entered')
+            || snapshot.matches('AlertError')
+              ? ` ${ArithmeticOperatorMap[snapshot.context.operator!].displaySign} `
               : ''
           }${
-            state.matches('NegativeNumber2')
+            snapshot.matches('NegativeNumber2')
               ? '-'
               : ''
           }${
-            state.matches('Operand2Entered')
-            || state.matches('AlertError')
-              ? state.context.operand2
+            snapshot.matches('Operand2Entered')
+            || snapshot.matches('AlertError')
+              ? snapshot.context.operand2
               : ''
           }`">
     <div class="container">
@@ -84,7 +86,7 @@ export default defineComponent({
             :key="dataTest"
             :data-test="'command' + dataTest"
             @click="send({ type: eventType })"
-            :disabled="!state.can({ type: eventType })"
+            :disabled="!snapshot.can({ type: eventType })"
         >
           {{ displaySign }}
         </button>
@@ -97,7 +99,7 @@ export default defineComponent({
             :key="digit"
             :data-test="'digit' + digit"
             @click="send({ type: MachineEventTypes.DIGIT_CLICKED, data: digit })"
-            :disabled="!state.can({ type: MachineEventTypes.DIGIT_CLICKED, data: digit })"
+            :disabled="!snapshot.can({ type: MachineEventTypes.DIGIT_CLICKED, data: digit })"
         >
           {{ digit }}
         </button>
@@ -111,7 +113,7 @@ export default defineComponent({
             :key="dataTest"
             :data-test="'command' + dataTest"
             @click="send({ type: eventType })"
-            :disabled="!state.can({ type: eventType })"
+            :disabled="!snapshot.can({ type: eventType })"
         >
           {{ displaySign }}
         </button>
@@ -123,7 +125,7 @@ export default defineComponent({
             :key="operator"
             :data-test="'operator' + operator"
             @click="send({ type: MachineEventTypes.OPERATOR_CLICKED, data: operator })"
-            :disabled="!state.can({ type: MachineEventTypes.OPERATOR_CLICKED, data: operator })"
+            :disabled="!snapshot.can({ type: MachineEventTypes.OPERATOR_CLICKED, data: operator })"
         >
           {{ displaySign }}
         </button>

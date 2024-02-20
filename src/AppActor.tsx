@@ -1,16 +1,17 @@
 import { useCallback, useEffect } from 'react';
 import { useActor } from '@xstate/react';
-import { type Digit, type MachineContext, type MachineEvents, type TypeState } from './machine/type';
+import { type Digit, type MachineEvents } from './machine/type';
 import { MachineEventTypes } from './machine/events';
 import { type ValueOf } from './types';
 import { ArithmeticOperatorMap, COMMANDS, CommandsMap, DIGITS, OPERATORS } from "./common";
 import { getKeyboardInputHandler } from './helpers';
-import { type Interpreter } from "xstate";
+import { type Actor } from "xstate";
+import { type AnyActorLogic } from "xstate/dist/declarations/src/types";
 import './App.css'
 
 type AppProps = {
   fastForwardEvents?: MachineEvents[],
-  service: Interpreter<MachineContext, any, MachineEvents, TypeState>,
+  service: Actor<AnyActorLogic>,
 };
 
 //  TODO: extract
@@ -48,10 +49,11 @@ export function AppActor({ fastForwardEvents, service }: AppProps) {
     {digit}
   </button>, [state]);
 
-  const renderOperator = useCallback(({
-                                        operator,
-                                        displaySign
-                                      }: ValueOf<typeof ArithmeticOperatorMap>) => <button
+  const renderOperator = useCallback((
+    {
+      operator,
+      displaySign
+    }: ValueOf<typeof ArithmeticOperatorMap>) => <button
     key={operator}
     type="button"
     onClick={() => {

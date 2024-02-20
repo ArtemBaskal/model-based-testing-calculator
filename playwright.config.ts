@@ -4,7 +4,7 @@ const { HEADLESS, PLAYWRIGHT_SLOW_MO, TEST_ACTIONS } = process.env;
 
 export const config: PlaywrightTestConfig = {
   use: {
-    baseURL: 'http://127.0.0.1:5173',
+    baseURL: 'http://localhost:5173/model-based-testing-calculator/',
     actionTimeout: 20000,
     headless: !!HEADLESS,
     launchOptions: {
